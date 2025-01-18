@@ -1,20 +1,27 @@
+// Node.java
 import java.util.ArrayList;
 import java.util.List;
 
 public class Node {
     private String name;
+    private String type;
+    private String word;
     private List<Node> children = new ArrayList<>();
 
     public Node(String name) {
         this.name = name;
     }
 
-    public void addChild(Node child) {
-        children.add(child);
+    public void setType(String type) {
+        this.type = type;
     }
 
-    public String getName() {
-        return name;
+    public void setWord(String word) {
+        this.word = word;
+    }
+
+    public void addChild(Node child) {
+        children.add(child);
     }
 
     public List<Node> getChildren() {
@@ -23,6 +30,6 @@ public class Node {
 
     @Override
     public String toString() {
-        return name;
+        return name + (word != null ? " (" + word + ")" : "");
     }
 }

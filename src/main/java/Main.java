@@ -1,21 +1,22 @@
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import org.javacc.parser.ParseException;
 
 public class Main {
-    public static void main(String[] args) throws ParseException {
-        System.out.println("Main method started");
-
-        String input = "123 + 456"; // Predefined input
+    public static void main(String[] args) {
+        String input = "als productvoorraad < 50 dan bestel 10.";
         InputStream inputStream = new ByteArrayInputStream(input.getBytes());
         MyParser parser = new MyParser(inputStream);
 
+        System.out.println("Main method started");
+        System.out.println("Starting parser...");
         try {
-            System.out.println("Starting parser...");
-            Node result = parser.Start(); // Parse the input
-            System.out.println("Parsing completed!");
-            printTree(result, 0); // Print the parse tree
+            Node result = parser.sbvrRuleList();
+            System.out.println("Parsing completed successfully!");
+            printTree(result, 0);
         } catch (ParseException e) {
-            System.out.println("Parsing failed: " + e.getMessage());
+            System.err.println("Parsing failed: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 

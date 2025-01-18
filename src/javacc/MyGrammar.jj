@@ -1,14 +1,43 @@
+// MyGrammar.jj
+options {
+    STATIC = false;
+}
 PARSER_BEGIN(MyParser)
+
+import java.io.InputStream;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import org.javacc.parser.ParseException;
+import org.javacc.parser.Token;
+
 public class MyParser {
+
     public static void main(String[] args) throws ParseException {
-        System.out.println("Main method started");
-        MyParser parser = new MyParser(System.in);
+        MyParser parser;
+        if (args.length == 0) {
+            System.out.println("SBVR Parser: Reading from standard input ...");
+            parser = new MyParser(System.in);
+        } else if (args.length == 1) {
+            try {
+                parser = new MyParser(new FileInputStream(args[0]));
+            } catch (FileNotFoundException e) {
+                System.err.println("File " + args[0] + " not found.");
+                return;
+            }
+        } else {
+            System.out.println("SBVR Parser: Usage is one of:");
+            System.out.println("         java MyParser < inputfile");
+            System.out.println("OR");
+            System.out.println("         java MyParser inputfile");
+            return;
+        }
         try {
-            Node result = parser.Start();
-            System.out.println("Parsing completed successfully!");
+            Node result = parser.sbvrRuleList();
+            System.out.println("SBVR Parser: SBVR program parsed successfully.");
             printTree(result, 0);
         } catch (ParseException e) {
-            System.out.println("Parsing failed: " + e.getMessage());
+            System.out.println(e.getMessage());
+            System.out.println("SBVR Parser: Encountered errors during parse.");
         }
     }
 
@@ -22,80 +51,82 @@ public class MyParser {
         }
     }
 }
+
 PARSER_END(MyParser)
 
 SKIP : {
-    " " | "\t" | "\n" | "\r"
+    " " | "\t" | "\r" | "\n"
 }
 
 TOKEN : {
-    < PLUS: "+" > |
-    < MINUS: "-" > |
-    < LPAREN: "(" > |
-    < RPAREN: ")" > |
-    < NUMBER: (["0"-"9"])+ >
+    < SCALAR: (["0"-"9"])+ > |
+    < STOCK: "productvoorraad" > |
+    < LESSTHAN: "<" > |
+    < ORDER: "bestel" > |
+    < IF: "als" > |
+    < THEN: "dan" > |
+    < DOT: "." >
 }
 
-Node Start() :
+Node sbvrRuleList() :
 {
-    Node node;
+    Node node = new Node("sbvrRuleList");
+    Node rule;
 }
 {
-    node = Expr() <EOF>
-    {
-        return node;
-    }
+    ( rule = sbvrRule() { node.addChild(rule); } )* <EOF>
+    { return node; }
 }
 
-Node Expr() :
+Node sbvrRule() :
+{ Node ifClauseNode; }
 {
-    Node node = new Node("Expr");
-    Node term;
+    ifClauseNode = ifClause() <DOT> { ifClauseNode.setType("sbvrRule"); return ifClauseNode; }
+}
+
+Node ifClause() :
+{
+    Node conditionNode;
+    Node actionNode;
 }
 {
-    term = Term()
+    <IF> conditionNode = condition() <THEN> actionNode = action()
     {
-        node.addChild(term);
-    }
-    (
-        <PLUS>
-        {
-            Node plusNode = new Node("PLUS");
-            node.addChild(plusNode);
-            term = Term();
-            node.addChild(term);
-        }
-        |
-        <MINUS>
-        {
-            Node minusNode = new Node("MINUS");
-            node.addChild(minusNode);
-            term = Term();
-            node.addChild(term);
-        }
-    )*
-    {
-        return node;
+        Node ifNode = new Node("ifClause");
+        ifNode.setWord("als dan");
+        ifNode.addChild(conditionNode);
+        ifNode.addChild(actionNode);
+        return ifNode;
     }
 }
 
-Node Term() :
+Node condition() :
+{ Node conceptNode; Node scalarNode; }
 {
-    Token number;
-    Node node = new Node("Term");
+    conceptNode = concept() <LESSTHAN> scalarNode = scalarLiteral()
+    {
+        Node conditionNode = new Node("condition");
+        conditionNode.setWord("<");
+        conditionNode.addChild(conceptNode);
+        conditionNode.addChild(scalarNode);
+        return conditionNode;
+    }
 }
+
+Node concept() :
+{ Token t; Node node; }
 {
-    number = <NUMBER>
-    {
-        Node numberNode = new Node(number.image);
-        node.addChild(numberNode);
-        return node;
-    }
-    |
-    <LPAREN> Expr() <RPAREN>
-    {
-        Node parenNode = new Node("PAREN");
-        parenNode.addChild(node);
-        return parenNode;
-    }
+    t = <STOCK> { node = new Node("concept"); node.setWord(t.image); return node; }
+}
+
+Node action() :
+{ Token t; Node scalarNode; }
+{
+    t = <ORDER> scalarNode = scalarLiteral() { Node actionNode = new Node("action"); actionNode.setWord(t.image); actionNode.addChild(scalarNode); return actionNode; }
+}
+
+Node scalarLiteral() :
+{ Token t; }
+{
+    t = <SCALAR> { Node node = new Node("scalarLiteral"); node.setType(t.image); node.setWord(t.image); return node; }
 }
