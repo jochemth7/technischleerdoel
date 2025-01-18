@@ -1,6 +1,7 @@
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import org.javacc.parser.ParseException;
+import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
@@ -13,20 +14,21 @@ public class Main {
         try {
             Node result = parser.sbvrRuleList();
             System.out.println("Parsing completed successfully!");
-            printTree(result, 0);
+            printTree(result, "", true);
         } catch (ParseException e) {
             System.err.println("Parsing failed: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
-    private static void printTree(Node node, int level) {
-        for (int i = 0; i < level; i++) {
-            System.out.print("  ");
+    private static void printTree(Node node, String prefix, boolean isTail) {
+        System.out.println(prefix + (isTail ? "└── " : "├── ") + node);
+        List<Node> children = node.getChildren();
+        for (int i = 0; i < children.size() - 1; i++) {
+            printTree(children.get(i), prefix + (isTail ? "    " : "│   "), false);
         }
-        System.out.println(node);
-        for (Node child : node.getChildren()) {
-            printTree(child, level + 1);
+        if (children.size() > 0) {
+            printTree(children.get(children.size() - 1), prefix + (isTail ? "    " : "│   "), true);
         }
     }
 }

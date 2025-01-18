@@ -4,7 +4,7 @@ import java.util.List;
 
 public class Node {
     private String name;
-    private String type;
+    String type;
     private String word;
     private List<Node> children = new ArrayList<>();
 
