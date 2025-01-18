@@ -1,0 +1,83 @@
+PARSER_BEGIN(MyParser)
+public class MyParser {
+    public static void main(String[] args) throws ParseException {
+        System.out.println("Main method started");
+        MyParser parser = new MyParser(System.in);
+        try {
+            int result = parser.Start();
+            System.out.println("Parsing completed successfully!");
+            System.out.println("Result: " + result);
+        } catch (ParseException e) {
+            System.out.println("Parsing failed: " + e.getMessage());
+        }
+    }
+}
+PARSER_END(MyParser)
+
+SKIP : {
+    " " | "\t" | "\n" | "\r"
+}
+
+TOKEN : {
+    < PLUS: "+" > |
+    < MINUS: "-" > |
+    < LPAREN: "(" > |
+    < RPAREN: ")" > |
+    < NUMBER: (["0"-"9"])+ >
+}
+
+int Start() :
+{
+    int result;
+}
+{
+    result = Expr() <EOF>
+    {
+        return result;
+    }
+}
+
+int Expr() :
+{
+    int result, term;
+}
+{
+    result = Term()
+    {
+        System.out.println("Initial result: " + result);
+    }
+    (
+        <PLUS>
+        {
+            term = Term();
+            result += term;
+            System.out.println("Added term: " + term + ", new result: " + result);
+        }
+        |
+        <MINUS>
+        {
+            term = Term();
+            result -= term;
+            System.out.println("Subtracted term: " + term + ", new result: " + result);
+        }
+    )*
+    {
+        return result;
+    }
+}
+
+int Term() :
+{
+    Token number;
+    int value;
+}
+{
+    number = <NUMBER>
+    {
+        value = Integer.parseInt(number.image);
+        System.out.println("Matched number: " + number.image);
+        return value;
+    }
+    |
+    <LPAREN> Expr() <RPAREN>
+}
