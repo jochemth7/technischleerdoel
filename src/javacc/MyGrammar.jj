@@ -1,4 +1,3 @@
-// MyGrammar.jj
 options {
     STATIC = false;
 }
@@ -61,7 +60,7 @@ SKIP : {
 TOKEN : {
     < SCALAR: (["0"-"9"])+ > |
     < STOCK: "productvoorraad" > |
-    < LESSTHAN: "<" > |
+    < LESSTHAN: "minder dan" > |
     < ORDER: "bestel" > |
     < IF: "als" > |
     < THEN: "dan" > |
@@ -106,7 +105,7 @@ Node condition() :
     conceptNode = concept() <LESSTHAN> scalarNode = scalarLiteral()
     {
         Node conditionNode = new Node("condition");
-        conditionNode.setWord("<");
+        conditionNode.setWord("minder dan");
         conditionNode.addChild(conceptNode);
         conditionNode.addChild(scalarNode);
         return conditionNode;

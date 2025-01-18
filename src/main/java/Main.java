@@ -4,7 +4,7 @@ import org.javacc.parser.ParseException;
 
 public class Main {
     public static void main(String[] args) {
-        String input = "als productvoorraad < 50 dan bestel 10.";
+        String input = "als productvoorraad minder dan 50 dan bestel 10.";
         InputStream inputStream = new ByteArrayInputStream(input.getBytes());
         MyParser parser = new MyParser(inputStream);
 
