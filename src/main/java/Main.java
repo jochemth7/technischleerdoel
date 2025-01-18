@@ -11,10 +11,21 @@ public class Main {
 
         try {
             System.out.println("Starting parser...");
-            parser.Start(); // Parse the input
+            Node result = parser.Start(); // Parse the input
             System.out.println("Parsing completed!");
+            printTree(result, 0); // Print the parse tree
         } catch (ParseException e) {
             System.out.println("Parsing failed: " + e.getMessage());
+        }
+    }
+
+    private static void printTree(Node node, int level) {
+        for (int i = 0; i < level; i++) {
+            System.out.print("  ");
+        }
+        System.out.println(node);
+        for (Node child : node.getChildren()) {
+            printTree(child, level + 1);
         }
     }
 }

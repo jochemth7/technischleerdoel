@@ -4,11 +4,21 @@ public class MyParser {
         System.out.println("Main method started");
         MyParser parser = new MyParser(System.in);
         try {
-            int result = parser.Start();
+            Node result = parser.Start();
             System.out.println("Parsing completed successfully!");
-            System.out.println("Result: " + result);
+            printTree(result, 0);
         } catch (ParseException e) {
             System.out.println("Parsing failed: " + e.getMessage());
+        }
+    }
+
+    private static void printTree(Node node, int level) {
+        for (int i = 0; i < level; i++) {
+            System.out.print("  ");
+        }
+        System.out.println(node);
+        for (Node child : node.getChildren()) {
+            printTree(child, level + 1);
         }
     }
 }
@@ -26,58 +36,66 @@ TOKEN : {
     < NUMBER: (["0"-"9"])+ >
 }
 
-int Start() :
+Node Start() :
 {
-    int result;
+    Node node;
 }
 {
-    result = Expr() <EOF>
+    node = Expr() <EOF>
     {
-        return result;
+        return node;
     }
 }
 
-int Expr() :
+Node Expr() :
 {
-    int result, term;
+    Node node = new Node("Expr");
+    Node term;
 }
 {
-    result = Term()
+    term = Term()
     {
-        System.out.println("Initial result: " + result);
+        node.addChild(term);
     }
     (
         <PLUS>
         {
+            Node plusNode = new Node("PLUS");
+            node.addChild(plusNode);
             term = Term();
-            result += term;
-            System.out.println("Added term: " + term + ", new result: " + result);
+            node.addChild(term);
         }
         |
         <MINUS>
         {
+            Node minusNode = new Node("MINUS");
+            node.addChild(minusNode);
             term = Term();
-            result -= term;
-            System.out.println("Subtracted term: " + term + ", new result: " + result);
+            node.addChild(term);
         }
     )*
     {
-        return result;
+        return node;
     }
 }
 
-int Term() :
+Node Term() :
 {
     Token number;
-    int value;
+    Node node = new Node("Term");
 }
 {
     number = <NUMBER>
     {
-        value = Integer.parseInt(number.image);
-        System.out.println("Matched number: " + number.image);
-        return value;
+        Node numberNode = new Node(number.image);
+        node.addChild(numberNode);
+        return node;
     }
     |
     <LPAREN> Expr() <RPAREN>
+    {
+        Node parenNode = new Node("PAREN");
+        parenNode.addChild(node);
+        return parenNode;
+    }
 }
